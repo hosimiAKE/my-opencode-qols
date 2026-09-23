@@ -1,0 +1,14 @@
+# runtime state / backups created by the installer on the user's machine
+retarder/backup/
+retarder/state/
+retarder/*.log
+
+# node
+node_modules/
+package-lock.json
+
+# os / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

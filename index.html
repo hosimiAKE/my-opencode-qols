@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>my-opencode-qols — quality-of-life plugins for OpenCode</title>
+    <meta
+      name="description"
+      content="A collection of quality-of-life plugins for OpenCode. First up: retarder — scheduled send for OpenCode Desktop."
+    />
+    <meta name="theme-color" content="#080808" />
+    <meta property="og:title" content="my-opencode-qols" />
+    <meta
+      property="og:description"
+      content="Quality-of-life plugins for OpenCode. retarder: pick a time, and your message waits until then before it is sent."
+    />
+    <meta property="og:type" content="website" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Ccircle cx='10' cy='10' r='7.5' fill='none' stroke='%23fafafa'/%3E%3Cpath d='M10 5.5v4.75L13.25 12' fill='none' stroke='%23fafafa' stroke-linecap='square'/%3E%3C/svg%3E"
+    />
+    <style>
+      :root {
+        --bg: #080808;
+        --bg-soft: #0e0e0e;
+        --panel: #111111;
+        --panel-2: #161616;
+        --line: #262626;
+        --line-soft: #1d1d1d;
+        --fg: #fafafa;
+        --muted: #9b9b9b;
+        --faint: #6b6b6b;
+        --accent: #4c8dff;
+        --radius: 12px;
+        --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+        --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+          "PingFang SC", "Microsoft YaHei", sans-serif;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; }
+      body {
+        background: var(--bg);
+        color: var(--fg);
+        font-family: var(--sans);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+      a { color: inherit; text-decoration: none; }
+      code, pre, .mono { font-family: var(--mono); }
+      .wrap { max-width: 980px; margin: 0 auto; padding: 0 24px; }
+
+      /* nav */
+      nav {
+        position: sticky; top: 0; z-index: 10;
+        backdrop-filter: blur(12px);
+        background: color-mix(in srgb, var(--bg) 82%, transparent);
+        border-bottom: 1px solid var(--line-soft);
+      }
+      nav .wrap { display: flex; align-items: center; gap: 20px; height: 60px; }
+      .brand { font-weight: 600; letter-spacing: -0.02em; display: flex; align-items: center; gap: 9px; }
+      .brand svg { display: block; }
+      nav .links { margin-left: auto; display: flex; align-items: center; gap: 18px; color: var(--muted); font-size: 14px; }
+      nav .links a:hover { color: var(--fg); }
+      .lang {
+        border: 1px solid var(--line); background: var(--panel); color: var(--muted);
+        border-radius: 999px; padding: 5px 12px; font: inherit; font-size: 13px; cursor: pointer;
+      }
+      .lang:hover { color: var(--fg); border-color: #3a3a3a; }
+
+      /* hero */
+      header.hero { padding: 84px 0 56px; text-align: center; }
+      .pill {
+        display: inline-flex; align-items: center; gap: 8px;
+        border: 1px solid var(--line); background: var(--panel);
+        color: var(--muted); border-radius: 999px; padding: 6px 14px; font-size: 13px;
+      }
+      .pill b { color: var(--fg); font-weight: 530; }
+      h1 { font-size: clamp(34px, 6vw, 56px); line-height: 1.05; letter-spacing: -0.04em; margin: 22px 0 14px; font-weight: 600; }
+      h1 .grad { background: linear-gradient(100deg, #fafafa 20%, #8f8f8f 90%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+      .lede { color: var(--muted); max-width: 620px; margin: 0 auto 30px; font-size: 16px; }
+      .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+      .btn {
+        display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 18px;
+        border-radius: 9px; border: 1px solid var(--line); background: var(--panel); color: var(--fg);
+        font-size: 14px; font-weight: 530; cursor: pointer; font-family: var(--sans);
+      }
+      .btn:hover { background: var(--panel-2); border-color: #3a3a3a; }
+      .btn.primary { background: var(--fg); color: #0a0a0a; border-color: var(--fg); }
+      .btn.primary:hover { background: #e6e6e6; }
+
+      h2 { font-size: 24px; letter-spacing: -0.02em; margin: 0 0 6px; font-weight: 600; }
+      .sub { color: var(--muted); margin: 0 0 26px; }
+      section { padding: 56px 0; border-top: 1px solid var(--line-soft); }
+
+      /* composer mock */
+      .showcase { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 36px; align-items: center; }
+      @media (max-width: 860px) { .showcase { grid-template-columns: 1fr; } }
+      .composer {
+        border: 1px solid var(--line); background: var(--bg-soft); border-radius: 16px;
+        padding: 18px 18px 12px; min-height: 176px; display: flex; flex-direction: column;
+      }
+      .composer .prompt { color: #d8d8d8; font-size: 14px; }
+      .composer .prompt .caret { display: inline-block; width: 1px; height: 15px; background: var(--fg); vertical-align: -3px; animation: blink 1.2s steps(1) infinite; }
+      @keyframes blink { 50% { opacity: 0; } }
+      .composer .bar { margin-top: auto; display: flex; align-items: center; gap: 16px; color: var(--muted); font-size: 13px; padding-top: 14px; }
+      .composer .bar .grow { flex: 1; }
+      .chip {
+        display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 9px;
+        border-radius: 6px; border: 1px solid transparent; color: var(--muted);
+      }
+      .chip.armed { background: var(--panel-2); border-color: var(--line); color: var(--fg); }
+      .chip.armed svg path { stroke: var(--accent); }
+      .send {
+        width: 28px; height: 28px; border-radius: 8px; background: #f5f5f5; color: #0a0a0a;
+        display: grid; place-items: center;
+      }
+      .plus { width: 22px; text-align: center; color: var(--muted); }
+      .arrow { transform: rotate(180deg); }
+      .hint { color: var(--faint); font-size: 12px; margin-top: 10px; text-align: right; }
+      .hint b { color: var(--accent); font-weight: 530; }
+
+      .features { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+      @media (max-width: 700px) { .features { grid-template-columns: 1fr; } }
+      .feature { border: 1px solid var(--line); background: var(--panel); border-radius: var(--radius); padding: 16px 18px; }
+      .feature h3 { margin: 0 0 4px; font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
+      .feature p { margin: 0; color: var(--muted); font-size: 13.5px; }
+
+      /* code */
+      .code { position: relative; border: 1px solid var(--line); background: #0b0b0b; border-radius: var(--radius); overflow: hidden; }
+      .code header { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-bottom: 1px solid var(--line-soft); color: var(--faint); font-size: 12px; }
+      .code header .dot { width: 9px; height: 9px; border-radius: 999px; background: #2a2a2a; }
+      .code pre { margin: 0; padding: 16px; overflow-x: auto; font-size: 13px; line-height: 1.75; color: #e8e8e8; }
+      .code .cmt { color: #5f5f5f; }
+      .code .cmd { color: #9ecbff; }
+      .copy {
+        position: absolute; top: 8px; right: 8px; height: 26px; padding: 0 10px; font-size: 12px;
+        background: var(--panel-2); color: var(--muted); border: 1px solid var(--line); border-radius: 7px; cursor: pointer;
+      }
+      .copy:hover { color: var(--fg); }
+
+      /* steps */
+      .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+      @media (max-width: 800px) { .steps { grid-template-columns: 1fr; } }
+      .step { border: 1px solid var(--line); background: var(--panel); border-radius: var(--radius); padding: 18px; }
+      .step .n { width: 24px; height: 24px; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--line); display: grid; place-items: center; font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+      .step h3 { margin: 0 0 4px; font-size: 14px; }
+      .step p { margin: 0; color: var(--muted); font-size: 13.5px; }
+
+      footer { border-top: 1px solid var(--line-soft); padding: 28px 0 40px; color: var(--faint); font-size: 13px; }
+      footer .wrap { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+      footer a:hover { color: var(--fg); }
+      .i18n-zh, html[lang="zh"] .i18n-en { display: none; }
+      html[lang="zh"] .i18n-zh { display: inline; }
+      html[lang="zh"] .i18n-zh.block { display: block; }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <div class="wrap">
+        <a class="brand" href="#">
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <circle cx="10" cy="10" r="7.5" stroke="currentColor" />
+            <path d="M10 5.5V10.25L13.25 12" stroke="currentColor" stroke-linecap="square" />
+          </svg>
+          my-opencode-qols
+        </a>
+        <div class="links">
+          <a href="#plugins"><span class="i18n-en">Plugins</span><span class="i18n-zh">插件</span></a>
+          <a href="#install"><span class="i18n-en">Install</span><span class="i18n-zh">安装</span></a>
+          <a href="https://github.com/hosimiAKE/my-opencode-qols">GitHub ↗</a>
+          <button class="lang" id="lang">中文</button>
+        </div>
+      </div>
+    </nav>
+
+    <header class="hero wrap">
+      <span class="pill">
+        <span class="i18n-en">Collection · </span><span class="i18n-zh">合集 · </span><b>1 plugin</b>
+        <span class="i18n-en"> · Windows</span><span class="i18n-zh"> · Windows</span>
+      </span>
+      <h1>
+        <span class="grad i18n-en">Quality‑of‑life plugins for OpenCode</span>
+        <span class="grad i18n-zh">OpenCode 实用插件合集</span>
+      </h1>
+      <p class="lede i18n-en">
+        Small, focused patches that make the OpenCode desktop app nicer to live in. Every plugin is
+        reversible, needs no admin rights, and re-installs itself after app updates.
+      </p>
+      <p class="lede i18n-zh">
+        一些让 OpenCode 桌面端更好用的小插件：安装可一键卸载还原、无需管理员权限，官方更新后自动恢复。
+      </p>
+      <div class="cta">
+        <a class="btn primary" href="#plugins">
+          <span class="i18n-en">Browse plugins</span><span class="i18n-zh">浏览插件</span>
+        </a>
+        <a class="btn" href="#install">
+          <span class="i18n-en">Install retarder</span><span class="i18n-zh">安装 retarder</span>
+        </a>
+      </div>
+    </header>
+
+    <section id="plugins">
+      <div class="wrap">
+        <h2>retarder</h2>
+        <p class="sub i18n-en">Scheduled send for OpenCode Desktop — messages wait until the time you pick.</p>
+        <p class="sub i18n-zh">OpenCode 桌面端「定时发送」：选择时刻后，发送的消息会等到该时刻再发出。</p>
+
+        <div class="showcase">
+          <div>
+            <div class="features">
+              <div class="feature">
+                <h3><span class="i18n-en">Off by default</span><span class="i18n-zh">默认不生效</span></h3>
+                <p class="i18n-en">No time selected? The composer behaves exactly like stock OpenCode.</p>
+                <p class="i18n-zh">未选择时间时，输入框与官方行为完全一致，零干预。</p>
+              </div>
+              <div class="feature">
+                <h3><span class="i18n-en">Pick any moment</span><span class="i18n-zh">任意时刻</span></h3>
+                <p class="i18n-en">5 min / 30 min / 1 h / today 20:00 / tomorrow 09:00 — or a custom date &amp; time.</p>
+                <p class="i18n-zh">5 分钟 / 30 分钟 / 1 小时 / 今天 20:00 / 明天 09:00，也可自定义日期时间。</p>
+              </div>
+              <div class="feature">
+                <h3><span class="i18n-en">Per session</span><span class="i18n-zh">按会话独立</span></h3>
+                <p class="i18n-en">A schedule only applies to the session where you set it.</p>
+                <p class="i18n-zh">定时只影响设置它的那个会话，切换会话互不干扰。</p>
+              </div>
+              <div class="feature">
+                <h3><span class="i18n-en">Survives updates</span><span class="i18n-zh">更新不丢失</span></h3>
+                <p class="i18n-en">A logon daemon re-injects the plugin whenever OpenCode updates itself.</p>
+                <p class="i18n-zh">登录自启的守护进程会在官方更新后自动重新注入。</p>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="composer">
+              <div class="prompt">
+                <span class="i18n-en">refactor the parser and add tests</span>
+                <span class="i18n-zh">帮我重构解析器并补充测试</span><span class="caret"></span>
+              </div>
+              <div class="bar">
+                <span class="plus">+</span>
+                <span>Build ▾</span>
+                <span>Model ▾</span>
+                <span class="grow"></span>
+                <span class="chip armed">
+                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <circle cx="10" cy="10" r="7.1" stroke="#9b9b9b" />
+                    <path d="M10 5.5V10.25L13.25 12" stroke="#9b9b9b" stroke-linecap="square" />
+                  </svg>
+                  20:30
+                </span>
+                <span class="send">
+                  <svg width="15" height="15" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <path d="M10 16V4M10 4l5 5M10 4L5 9" stroke="currentColor" stroke-width="1.4" stroke-linecap="square" />
+                  </svg>
+                </span>
+              </div>
+            </div>
+            <p class="hint i18n-en">message held · will be sent at <b>20:30</b></p>
+            <p class="hint i18n-zh">消息已暂存 · 将于 <b>20:30</b> 自动发送</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="install">
+      <div class="wrap">
+        <h2><span class="i18n-en">Install</span><span class="i18n-zh">安装</span></h2>
+        <p class="sub">
+          <span class="i18n-en">Windows · OpenCode Desktop V2 · Node.js 18+ · no admin rights.</span>
+          <span class="i18n-zh">Windows · OpenCode 桌面端 V2 · Node.js 18+ · 无需管理员权限。</span>
+        </p>
+        <div class="code">
+          <button class="copy" data-copy="git clone https://github.com/hosimiAKE/my-opencode-qols.git
+cd my-opencode-qols/retarder
+powershell -ExecutionPolicy Bypass -File install.ps1">Copy</button>
+          <header><span class="dot"></span> PowerShell</header>
+          <pre><span class="cmt"># clone the collection</span>
+<span class="cmd">git clone</span> https://github.com/hosimiAKE/my-opencode-qols.git
+<span class="cmd">cd</span> my-opencode-qols/retarder
+
+<span class="cmt"># install the plugin (then restart OpenCode Desktop)</span>
+<span class="cmd">powershell</span> -ExecutionPolicy Bypass -File install.ps1</pre>
+        </div>
+
+        <div class="steps" style="margin-top: 22px">
+          <div class="step">
+            <div class="n">1</div>
+            <h3><span class="i18n-en">Install</span><span class="i18n-zh">安装</span></h3>
+            <p class="i18n-en">The installer injects the plugin into the app and registers a logon daemon.</p>
+            <p class="i18n-zh">安装器把插件注入桌面端，并注册登录自启的守护进程。</p>
+          </div>
+          <div class="step">
+            <div class="n">2</div>
+            <h3><span class="i18n-en">Restart the app</span><span class="i18n-zh">重启桌面端</span></h3>
+            <p class="i18n-en">A clock appears next to the send button. Sessions and settings stay intact.</p>
+            <p class="i18n-zh">发送按钮旁会出现时钟控件，会话与配置不受影响。</p>
+          </div>
+          <div class="step">
+            <div class="n">3</div>
+            <h3><span class="i18n-en">Uninstall anytime</span><span class="i18n-zh">随时卸载</span></h3>
+            <p class="i18n-en"><span class="mono">uninstall.ps1</span> stops the daemon and restores the original bytes.</p>
+            <p class="i18n-zh">运行 <span class="mono">uninstall.ps1</span> 即可停止守护并还原官方文件。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div class="wrap">
+        <span>MIT © 2026 hosimiAKE</span>
+        <span>·</span>
+        <a href="https://github.com/hosimiAKE/my-opencode-qols">GitHub</a>
+        <span>·</span>
+        <a href="https://opencode.ai">OpenCode</a>
+        <span style="margin-left: auto" class="i18n-en">Not affiliated with OpenCode.</span>
+        <span style="margin-left: auto" class="i18n-zh">与 OpenCode 官方无隶属关系。</span>
+      </div>
+    </footer>
+
+    <script>
+      // language toggle (EN / 中文)
+      var langBtn = document.getElementById("lang");
+      function setLang(lang) {
+        document.documentElement.lang = lang;
+        langBtn.textContent = lang === "zh" ? "EN" : "中文";
+        try { localStorage.setItem("qols.lang", lang); } catch (e) {}
+      }
+      var saved = "en";
+      try { saved = localStorage.getItem("qols.lang") || ((navigator.language || "").indexOf("zh") === 0 ? "zh" : "en"); } catch (e) {}
+      setLang(saved);
+      langBtn.addEventListener("click", function () {
+        setLang(document.documentElement.lang === "zh" ? "en" : "zh");
+      });
+
+      // copy buttons
+      document.querySelectorAll(".copy").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var text = btn.getAttribute("data-copy") || "";
+          var done = function () {
+            var old = btn.textContent;
+            btn.textContent = "Copied ✓";
+            setTimeout(function () { btn.textContent = old; }, 1400);
+          };
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(done, done);
+          } else {
+            var ta = document.createElement("textarea");
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand("copy"); } catch (e) {}
+            document.body.removeChild(ta);
+            done();
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
