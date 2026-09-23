@@ -417,6 +417,24 @@
         </p>
         <div class="code">
           <button class="copy" data-copy="git clone https://github.com/hosimiAKE/my-opencode-qols.git
+cd my-opencode-qols
+powershell -ExecutionPolicy Bypass -File install.ps1">Copy</button>
+          <header><span class="dot"></span> PowerShell · all plugins</header>
+          <pre><span class="cmt"># clone the collection</span>
+<span class="cmd">git clone</span> https://github.com/hosimiAKE/my-opencode-qols.git
+<span class="cmd">cd</span> my-opencode-qols
+
+<span class="cmt"># install every plugin at once (then restart OpenCode Desktop)</span>
+<span class="cmd">powershell</span> -ExecutionPolicy Bypass -File install.ps1</pre>
+        </div>
+
+        <p class="sub" style="margin: 20px 0 10px">
+          <span class="i18n-en">Or install a single plugin — every folder keeps its own installer:</span>
+          <span class="i18n-zh">也可以只安装单个插件 —— 每个插件目录都保留独立安装器：</span>
+        </p>
+
+        <div class="code">
+          <button class="copy" data-copy="git clone https://github.com/hosimiAKE/my-opencode-qols.git
 cd my-opencode-qols/retarder
 powershell -ExecutionPolicy Bypass -File install.ps1">Copy</button>
           <header><span class="dot"></span> PowerShell · retarder</header>
@@ -470,8 +488,8 @@ powershell -ExecutionPolicy Bypass -File install.ps1">Copy</button>
           <div class="step">
             <div class="n">3</div>
             <h3><span class="i18n-en">Uninstall anytime</span><span class="i18n-zh">随时卸载</span></h3>
-            <p class="i18n-en"><span class="mono">uninstall.ps1</span> stops the daemon and restores the original bytes.</p>
-            <p class="i18n-zh">运行 <span class="mono">uninstall.ps1</span> 即可停止守护并还原官方文件。</p>
+            <p class="i18n-en">The repo-root <span class="mono">uninstall.ps1</span> removes every plugin; a plugin's own <span class="mono">uninstall.ps1</span> removes just that one.</p>
+            <p class="i18n-zh">运行仓库根目录的 <span class="mono">uninstall.ps1</span> 可卸载全部插件；单个插件目录下的 <span class="mono">uninstall.ps1</span> 只卸载该插件。</p>
           </div>
         </div>
       </div>

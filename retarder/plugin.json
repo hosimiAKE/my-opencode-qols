@@ -1,0 +1,5 @@
+{
+  "title": "retarder",
+  "description": "定时发送：选择时刻后，消息等到该时刻再发出",
+  "order": 10
+}
