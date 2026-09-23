@@ -153,6 +153,20 @@
       .i18n-zh, html[lang="zh"] .i18n-en { display: none; }
       html[lang="zh"] .i18n-zh { display: inline; }
       html[lang="zh"] .i18n-zh.block { display: block; }
+
+      /* cost mock */
+      .stats {
+        border: 1px solid var(--line); background: var(--bg-soft); border-radius: 16px;
+        padding: 14px 18px; font-size: 13.5px;
+      }
+      .stats .row {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 8px 0; border-bottom: 1px solid var(--line-soft); color: var(--muted);
+      }
+      .stats .row:last-child { border-bottom: 0; }
+      .stats .row b { color: var(--fg); font-weight: 530; font-variant-numeric: tabular-nums; }
+      .stats .old { color: var(--faint); text-decoration: line-through; margin-right: 8px; }
+      .stats .new { color: #7ee2a8; }
     </style>
   </head>
   <body>
@@ -176,7 +190,7 @@
 
     <header class="hero wrap">
       <span class="pill">
-        <span class="i18n-en">Collection · </span><span class="i18n-zh">合集 · </span><b>1 plugin</b>
+        <span class="i18n-en">Collection · </span><span class="i18n-zh">合集 · </span><b>2 plugins</b>
         <span class="i18n-en"> · Windows</span><span class="i18n-zh"> · Windows</span>
       </span>
       <h1>
@@ -195,7 +209,7 @@
           <span class="i18n-en">Browse plugins</span><span class="i18n-zh">浏览插件</span>
         </a>
         <a class="btn" href="#install">
-          <span class="i18n-en">Install retarder</span><span class="i18n-zh">安装 retarder</span>
+          <span class="i18n-en">Install plugins</span><span class="i18n-zh">安装插件</span>
         </a>
       </div>
     </header>
@@ -264,6 +278,64 @@
       </div>
     </section>
 
+    <section id="homelander">
+      <div class="wrap">
+        <h2>homelander</h2>
+        <p class="sub i18n-en">
+          RMB cost display — when the session runs on a Chinese model provider, costs switch from USD to CNY.
+        </p>
+        <p class="sub i18n-zh">人民币计费显示 —— 会话使用中国厂商模型时，成本自动从美元换算成人民币。</p>
+
+        <div class="showcase">
+          <div class="features">
+            <div class="feature">
+              <h3><span class="i18n-en">Chinese providers only</span><span class="i18n-zh">只对中国厂商生效</span></h3>
+              <p class="i18n-en">DeepSeek, Kimi, Zhipu, Qwen, Doubao, MiniMax, StepFun, SiliconFlow, Tencent, Baidu, …</p>
+              <p class="i18n-zh">DeepSeek、Kimi、智谱、通义、豆包、MiniMax、阶跃、硅基流动、腾讯、百度等。</p>
+            </div>
+            <div class="feature">
+              <h3><span class="i18n-en">Live exchange rate</span><span class="i18n-zh">实时汇率</span></h3>
+              <p class="i18n-en">USD→CNY is fetched once a day and cached; falls back to a fixed rate offline.</p>
+              <p class="i18n-zh">每天自动获取并缓存 USD→CNY 汇率，离线时回退到固定汇率。</p>
+            </div>
+            <div class="feature">
+              <h3><span class="i18n-en">Where costs appear</span><span class="i18n-zh">覆盖所有计费位置</span></h3>
+              <p class="i18n-en">The composer's context tooltip and the context / stats panel.</p>
+              <p class="i18n-zh">输入框上方的上下文悬浮卡，以及上下文 / 统计面板。</p>
+            </div>
+            <div class="feature">
+              <h3><span class="i18n-en">Works with retarder</span><span class="i18n-zh">与 retarder 共存</span></h3>
+              <p class="i18n-en">Both plugins can be installed in any order, each with its own daemon.</p>
+              <p class="i18n-zh">两个插件可同时安装、互不干扰，各自拥有独立守护进程。</p>
+            </div>
+          </div>
+
+          <div>
+            <div class="stats">
+              <div class="row">
+                <span><span class="i18n-en">Provider</span><span class="i18n-zh">提供商</span></span>
+                <b>DeepSeek</b>
+              </div>
+              <div class="row">
+                <span><span class="i18n-en">Cost</span><span class="i18n-zh">成本</span></span>
+                <b><span class="old">US$0.39</span><span class="new">¥2.61</span></b>
+              </div>
+              <div class="row">
+                <span><span class="i18n-en">Total cost</span><span class="i18n-zh">总成本</span></span>
+                <b><span class="old">US$0.39</span><span class="new">¥2.61</span></b>
+              </div>
+              <div class="row">
+                <span><span class="i18n-en">Rate</span><span class="i18n-zh">汇率</span></span>
+                <b>1 USD = 6.70 CNY</b>
+              </div>
+            </div>
+            <p class="hint i18n-en">converted automatically · only for Chinese providers</p>
+            <p class="hint i18n-zh">自动换算 · 仅中国厂商生效</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section id="install">
       <div class="wrap">
         <h2><span class="i18n-en">Install</span><span class="i18n-zh">安装</span></h2>
@@ -275,10 +347,23 @@
           <button class="copy" data-copy="git clone https://github.com/hosimiAKE/my-opencode-qols.git
 cd my-opencode-qols/retarder
 powershell -ExecutionPolicy Bypass -File install.ps1">Copy</button>
-          <header><span class="dot"></span> PowerShell</header>
+          <header><span class="dot"></span> PowerShell · retarder</header>
           <pre><span class="cmt"># clone the collection</span>
 <span class="cmd">git clone</span> https://github.com/hosimiAKE/my-opencode-qols.git
 <span class="cmd">cd</span> my-opencode-qols/retarder
+
+<span class="cmt"># install the plugin (then restart OpenCode Desktop)</span>
+<span class="cmd">powershell</span> -ExecutionPolicy Bypass -File install.ps1</pre>
+        </div>
+
+        <div class="code" style="margin-top: 14px">
+          <button class="copy" data-copy="git clone https://github.com/hosimiAKE/my-opencode-qols.git
+cd my-opencode-qols/homelander
+powershell -ExecutionPolicy Bypass -File install.ps1">Copy</button>
+          <header><span class="dot"></span> PowerShell · homelander</header>
+          <pre><span class="cmt"># clone the collection</span>
+<span class="cmd">git clone</span> https://github.com/hosimiAKE/my-opencode-qols.git
+<span class="cmd">cd</span> my-opencode-qols/homelander
 
 <span class="cmt"># install the plugin (then restart OpenCode Desktop)</span>
 <span class="cmd">powershell</span> -ExecutionPolicy Bypass -File install.ps1</pre>

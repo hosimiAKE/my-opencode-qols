@@ -2,6 +2,9 @@
 retarder/backup/
 retarder/state/
 retarder/*.log
+homelander/backup/
+homelander/state/
+homelander/*.log
 
 # node
 node_modules/

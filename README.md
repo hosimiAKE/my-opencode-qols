@@ -17,6 +17,7 @@
 | Plugin | Description | Status |
 | --- | --- | --- |
 | [**retarder**](retarder) | Scheduled send for OpenCode Desktop. Pick a time and your message waits until then before it is actually sent. Off by default, per-session, survives app updates. | ✅ Stable |
+| [**homelander**](homelander) | RMB cost display. When the session runs on a Chinese model provider, cost readouts switch from USD to CNY with a live exchange rate. | ✅ Stable |
 
 ### retarder
 
@@ -44,6 +45,31 @@ powershell -ExecutionPolicy Bypass -File install.ps1   # then restart OpenCode D
 
 See [`retarder/README.md`](retarder/README.md) for details, troubleshooting and uninstall.
 
+### homelander
+
+OpenCode always bills in US dollars, even when the model is from a Chinese provider. `homelander`
+switches the cost readouts to RMB for those sessions:
+
+```
+成本  US$0.39   →   成本  ¥2.61
+```
+
+- **Chinese providers only** — DeepSeek, Kimi/Moonshot, Zhipu/Z.AI, Qwen/Alibaba, Doubao/Volcengine,
+  MiniMax, StepFun, SiliconFlow, Tencent, Baidu, SenseNova, iFlytek, ModelScope, … (all endpoints of
+  the company, including international ones).
+- **Live rate** — USD→CNY fetched once a day and cached; falls back to a fixed rate when offline.
+- **Everywhere costs appear** — the composer's context tooltip and the context / stats panel.
+- **Extensible** — add your own provider IDs or API hosts via `localStorage`.
+- **Coexists with retarder** — install both, in any order.
+
+```powershell
+git clone https://github.com/hosimiAKE/my-opencode-qols.git
+cd my-opencode-qols\homelander
+powershell -ExecutionPolicy Bypass -File install.ps1   # then restart OpenCode Desktop
+```
+
+See [`homelander/README.md`](homelander/README.md) for configuration and troubleshooting.
+
 ## Repository layout
 
 ```
@@ -51,12 +77,20 @@ my-opencode-qols/
 ├── index.html          # GitHub Pages homepage
 ├── README.md
 ├── LICENSE
-└── retarder/           # plugin: source + standalone installer
-    ├── install.ps1     # one-command installer
-    ├── install.cmd     # double-click wrapper
+├── retarder/           # plugin: source + standalone installer
+│   ├── install.ps1     # one-command installer
+│   ├── install.cmd     # double-click wrapper
+│   ├── uninstall.ps1
+│   ├── retarder.js     # the plugin (runs inside the renderer)
+│   ├── patch.mjs       # app.asar patcher (--status / --apply / --unpatch)
+│   ├── watch.mjs       # self-healing daemon
+│   └── launch-hidden.ps1
+└── homelander/         # plugin: source + standalone installer
+    ├── install.ps1
+    ├── install.cmd
     ├── uninstall.ps1
-    ├── retarder.js     # the plugin (runs inside the renderer)
-    ├── patch.mjs       # app.asar patcher (--status / --apply / --unpatch)
+    ├── homelander.js   # the plugin (runs inside the renderer)
+    ├── patch.mjs       # app.asar patcher
     ├── watch.mjs       # self-healing daemon
     └── launch-hidden.ps1
 ```
@@ -110,12 +144,13 @@ Issues and pull requests are welcome. New plugins should follow the same shape a
 | 插件 | 说明 | 状态 |
 | --- | --- | --- |
 | [**retarder**](retarder) | 桌面端「定时发送」：选择时刻后，发送的消息会等到该时刻再发出。默认不生效、按会话独立、官方更新后自动恢复。 | ✅ 稳定 |
+| [**homelander**](homelander) | 人民币计费显示：会话使用中国厂商模型时，成本从美元自动换算为人民币（实时汇率）。 | ✅ 稳定 |
 
 安装：
 
 ```powershell
 git clone https://github.com/hosimiAKE/my-opencode-qols.git
-cd my-opencode-qols\retarder
+cd my-opencode-qols\retarder       # 或 homelander
 powershell -ExecutionPolicy Bypass -File install.ps1
 ```
 
