@@ -81,8 +81,9 @@ safe, and `uninstall.ps1` restores the exact original bytes.
 
 ## Homepage
 
-The landing page lives in [`index.html`](index.html) and can be published with GitHub Pages
-(*Settings → Pages → Deploy from branch → main / root*).
+Live at **<https://hosimiake.github.io/my-opencode-qols/>** (GitHub Pages, served from
+[`index.html`](index.html) on `main`). The page is bilingual — it follows your browser language
+and can be toggled manually.
 
 ## Contributing
 
