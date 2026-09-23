@@ -6,13 +6,13 @@
     <title>my-opencode-qols — quality-of-life plugins for OpenCode</title>
     <meta
       name="description"
-      content="A collection of quality-of-life plugins for OpenCode. First up: retarder — scheduled send for OpenCode Desktop."
+      content="Quality-of-life plugins for OpenCode Desktop: retarder (scheduled send), homelander (RMB costs) and betterUI (project-grouped sessions + native menu bar)."
     />
     <meta name="theme-color" content="#080808" />
     <meta property="og:title" content="my-opencode-qols" />
     <meta
       property="og:description"
-      content="Quality-of-life plugins for OpenCode. retarder: pick a time, and your message waits until then before it is sent."
+      content="Plugins for OpenCode Desktop: scheduled send, RMB costs, project-grouped sessions and a native title-bar menu."
     />
     <meta property="og:type" content="website" />
     <link
@@ -167,6 +167,18 @@
       .stats .row b { color: var(--fg); font-weight: 530; font-variant-numeric: tabular-nums; }
       .stats .old { color: var(--faint); text-decoration: line-through; margin-right: 8px; }
       .stats .new { color: #7ee2a8; }
+
+      /* betterUI mock */
+      .ui-mock { border: 1px solid var(--line); background: var(--bg-soft); border-radius: 14px; overflow: hidden; font-size: 13px; }
+      .ui-mock .menubar { display: flex; gap: 2px; padding: 7px 10px; border-bottom: 1px solid var(--line-soft); color: var(--muted); }
+      .ui-mock .menubar span { padding: 3px 7px; border-radius: 6px; }
+      .ui-mock .menubar span.on { background: var(--panel-2); color: var(--fg); }
+      .ui-mock .body { display: grid; grid-template-columns: 150px 1fr; min-height: 132px; }
+      .ui-mock .side { border-right: 1px solid var(--line-soft); padding: 8px 6px; color: var(--muted); }
+      .ui-mock .grp { display: flex; align-items: center; gap: 6px; padding: 4px 6px; font-size: 11px; color: var(--faint); }
+      .ui-mock .item { padding: 4px 6px 4px 20px; border-radius: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .ui-mock .item.on { background: var(--panel-2); color: var(--fg); }
+      .ui-mock .main { display: grid; place-items: center; color: var(--faint); font-size: 12.5px; }
     </style>
   </head>
   <body>
@@ -190,7 +202,7 @@
 
     <header class="hero wrap">
       <span class="pill">
-        <span class="i18n-en">Collection · </span><span class="i18n-zh">合集 · </span><b>2 plugins</b>
+        <span class="i18n-en">Collection · </span><span class="i18n-zh">合集 · </span><b>3 plugins</b>
         <span class="i18n-en"> · Windows</span><span class="i18n-zh"> · Windows</span>
       </span>
       <h1>
@@ -336,6 +348,66 @@
       </div>
     </section>
 
+    <section id="betterui">
+      <div class="wrap">
+        <h2>betterUI</h2>
+        <p class="sub i18n-en">
+          Project-grouped sessions and a real menu bar in the title bar — every entry drives OpenCode's own menus.
+        </p>
+        <p class="sub i18n-zh">会话列表按项目分组 + 标题栏菜单栏，菜单项全部走官方原生逻辑。</p>
+
+        <div class="showcase">
+          <div class="features">
+            <div class="feature">
+              <h3><span class="i18n-en">Grouped by project</span><span class="i18n-zh">按项目分组</span></h3>
+              <p class="i18n-en">One header per home-page project; collapse/expand each project, state is remembered.</p>
+              <p class="i18n-zh">主页中的每个项目都有抬头，可折叠/展开，状态按项目记住。</p>
+            </div>
+            <div class="feature">
+              <h3><span class="i18n-en">New session, right project</span><span class="i18n-zh">一键新建会话</span></h3>
+              <p class="i18n-en">The ＋ button opens the new-session page with that project already selected.</p>
+              <p class="i18n-zh">抬头上的 ＋ 会打开新建会话页并预选该项目，原生流程不变。</p>
+            </div>
+            <div class="feature">
+              <h3><span class="i18n-en">Native menu bar</span><span class="i18n-zh">原生菜单栏</span></h3>
+              <p class="i18n-en">File / Edit / View / Go / Window / Help in the title bar — same items, same shortcuts.</p>
+              <p class="i18n-zh">标题栏显示文件 / 编辑 / 视图 / 前往 / 窗口 / 帮助，功能与快捷键完全一致。</p>
+            </div>
+            <div class="feature">
+              <h3><span class="i18n-en">Coexists with the others</span><span class="i18n-zh">与其它插件共存</span></h3>
+              <p class="i18n-en">Install any combination, uninstall independently, all three survive app updates.</p>
+              <p class="i18n-zh">三个插件可任意组合安装、独立卸载，官方更新后自动恢复。</p>
+            </div>
+          </div>
+
+          <div>
+            <div class="ui-mock">
+              <div class="menubar">
+                <span class="on"><span class="i18n-en">File</span><span class="i18n-zh">文件</span></span>
+                <span><span class="i18n-en">Edit</span><span class="i18n-zh">编辑</span></span>
+                <span><span class="i18n-en">View</span><span class="i18n-zh">视图</span></span>
+                <span><span class="i18n-en">Go</span><span class="i18n-zh">前往</span></span>
+                <span><span class="i18n-en">Window</span><span class="i18n-zh">窗口</span></span>
+                <span><span class="i18n-en">Help</span><span class="i18n-zh">帮助</span></span>
+              </div>
+              <div class="body">
+                <div class="side">
+                  <div class="grp">▾ my-opencode-qols <span style="margin-left:auto">2</span></div>
+                  <div class="item on">会话 A</div>
+                  <div class="item">会话 B</div>
+                  <div class="grp">▸ GitHub</div>
+                  <div class="grp">▸ other project</div>
+                </div>
+                <div class="main">OpenCode</div>
+              </div>
+            </div>
+            <p class="hint i18n-en">projects as headers · ＋ new session · real menu bar</p>
+            <p class="hint i18n-zh">项目抬头 · ＋ 新建会话 · 原生菜单栏</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section id="install">
       <div class="wrap">
         <h2><span class="i18n-en">Install</span><span class="i18n-zh">安装</span></h2>
@@ -364,6 +436,19 @@ powershell -ExecutionPolicy Bypass -File install.ps1">Copy</button>
           <pre><span class="cmt"># clone the collection</span>
 <span class="cmd">git clone</span> https://github.com/hosimiAKE/my-opencode-qols.git
 <span class="cmd">cd</span> my-opencode-qols/homelander
+
+<span class="cmt"># install the plugin (then restart OpenCode Desktop)</span>
+<span class="cmd">powershell</span> -ExecutionPolicy Bypass -File install.ps1</pre>
+        </div>
+
+        <div class="code" style="margin-top: 14px">
+          <button class="copy" data-copy="git clone https://github.com/hosimiAKE/my-opencode-qols.git
+cd my-opencode-qols/betterui
+powershell -ExecutionPolicy Bypass -File install.ps1">Copy</button>
+          <header><span class="dot"></span> PowerShell · betterUI</header>
+          <pre><span class="cmt"># clone the collection</span>
+<span class="cmd">git clone</span> https://github.com/hosimiAKE/my-opencode-qols.git
+<span class="cmd">cd</span> my-opencode-qols/betterui
 
 <span class="cmt"># install the plugin (then restart OpenCode Desktop)</span>
 <span class="cmd">powershell</span> -ExecutionPolicy Bypass -File install.ps1</pre>

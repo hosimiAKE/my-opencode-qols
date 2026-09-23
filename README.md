@@ -18,6 +18,7 @@
 | --- | --- | --- |
 | [**retarder**](retarder) | Scheduled send for OpenCode Desktop. Pick a time and your message waits until then before it is actually sent. Off by default, per-session, survives app updates. | ✅ Stable |
 | [**homelander**](homelander) | RMB cost display. When the session runs on a Chinese model provider, cost readouts switch from USD to CNY with a live exchange rate. | ✅ Stable |
+| [**betterUI**](betterui) | UI upgrade for OpenCode Desktop. Sessions are grouped by project with collapsible headers and a per-project **new session** button, and the hamburger button becomes a real `File / Edit / View / Go / Window / Help` menu bar in the title bar. | ✅ Stable |
 
 ### retarder
 
@@ -70,6 +71,37 @@ powershell -ExecutionPolicy Bypass -File install.ps1   # then restart OpenCode D
 
 See [`homelander/README.md`](homelander/README.md) for configuration and troubleshooting.
 
+### betterUI
+
+The sidebar session list gets one header per project (the projects shown on the home page),
+each with collapse/expand and a **＋ new session** button that opens the normal new-session flow
+with that project preselected. The hamburger button is replaced by a real menu bar in the title
+bar:
+
+```
+文件  编辑  视图  前往  窗口  帮助
+▾ my-opencode-qols       2
+    · session A
+    · session B
+▸ GitHub
+```
+
+- **Grouped sessions** — every project header can collapse/expand its sessions; the state is
+  remembered per project. Projects without sessions are shown collapsed.
+- **New session in project** — opens the stock new-session page with the project (and its main
+  worktree) already selected; drafts, branch, model and agent pickers all behave normally.
+- **Native menu bar** — the six menus drive OpenCode's own menu, so items, shortcuts, disabled
+  states and window actions are identical to the hamburger menu, just always visible.
+- **Coexists with the others** — install any combination; uninstall is byte-exact and independent.
+
+```powershell
+git clone https://github.com/hosimiAKE/my-opencode-qols.git
+cd my-opencode-qols\betterui
+powershell -ExecutionPolicy Bypass -File install.ps1   # then restart OpenCode Desktop
+```
+
+See [`betterui/README.md`](betterui/README.md) for details and troubleshooting.
+
 ## Repository layout
 
 ```
@@ -85,11 +117,19 @@ my-opencode-qols/
 │   ├── patch.mjs       # app.asar patcher (--status / --apply / --unpatch)
 │   ├── watch.mjs       # self-healing daemon
 │   └── launch-hidden.ps1
-└── homelander/         # plugin: source + standalone installer
+├── homelander/         # plugin: source + standalone installer
+│   ├── install.ps1
+│   ├── install.cmd
+│   ├── uninstall.ps1
+│   ├── homelander.js   # the plugin (runs inside the renderer)
+│   ├── patch.mjs       # app.asar patcher
+│   ├── watch.mjs       # self-healing daemon
+│   └── launch-hidden.ps1
+└── betterui/           # plugin: source + standalone installer
     ├── install.ps1
     ├── install.cmd
     ├── uninstall.ps1
-    ├── homelander.js   # the plugin (runs inside the renderer)
+    ├── betterui.js     # the plugin (runs inside the renderer)
     ├── patch.mjs       # app.asar patcher
     ├── watch.mjs       # self-healing daemon
     └── launch-hidden.ps1
@@ -145,12 +185,13 @@ Issues and pull requests are welcome. New plugins should follow the same shape a
 | --- | --- | --- |
 | [**retarder**](retarder) | 桌面端「定时发送」：选择时刻后，发送的消息会等到该时刻再发出。默认不生效、按会话独立、官方更新后自动恢复。 | ✅ 稳定 |
 | [**homelander**](homelander) | 人民币计费显示：会话使用中国厂商模型时，成本从美元自动换算为人民币（实时汇率）。 | ✅ 稳定 |
+| [**betterUI**](betterui) | 界面增强：会话列表按项目分组（可折叠、可一键在该项目中新建会话），汉堡按钮升级为标题栏上的「文件 / 编辑 / 视图 / 前往 / 窗口 / 帮助」原生菜单栏。 | ✅ 稳定 |
 
 安装：
 
 ```powershell
 git clone https://github.com/hosimiAKE/my-opencode-qols.git
-cd my-opencode-qols\retarder       # 或 homelander
+cd my-opencode-qols\retarder       # 或 homelander、betterui
 powershell -ExecutionPolicy Bypass -File install.ps1
 ```
 
