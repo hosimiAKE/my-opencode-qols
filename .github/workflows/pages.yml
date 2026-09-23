@@ -7,28 +7,59 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: pages
   cancel-in-progress: true
 
 jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write # needed to delete stale github-pages artifacts on re-runs
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # A re-run of this job uploads a second "github-pages" artifact instead of
+      # replacing the first one. deploy-pages refuses to pick between duplicates,
+      # so clear anything left over from earlier attempts before uploading again.
+      - name: Delete stale github-pages artifacts
+        if: github.run_attempt > 1
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const { owner, repo } = context.repo
+            const artifacts = await github.paginate(github.rest.actions.listWorkflowRunArtifacts, {
+              owner,
+              repo,
+              run_id: context.runId,
+              per_page: 100
+            })
+            for (const artifact of artifacts.filter(a => a.name === 'github-pages')) {
+              core.info(`Deleting stale artifact ${artifact.id} from a previous attempt`)
+              await github.rest.actions.deleteArtifact({ owner, repo, artifact_id: artifact.id })
+            }
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v6
+
+      - name: Upload static site
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: .
+
   deploy:
+    needs: build
+    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-      - name: Upload static site
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: .
       - name: Deploy
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
