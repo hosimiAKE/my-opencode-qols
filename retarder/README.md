@@ -57,6 +57,11 @@ Both writes are equal-length in-place edits, so the asar header, directory table
 offset stay intact — nothing is repacked. The original bytes are backed up in `backup/` for exact
 restoration.
 
+**Per-session schedules:** the desktop app routes with an in-memory history, so the window URL
+never changes. `retarder` therefore reads the active route from the value the app itself persists
+in `localStorage` (`opencode.desktop.window.<id>.last-active-url`) and reacts as soon as it is
+written, with a 1.5 s poll as a fallback.
+
 **Why it survives updates:** a scheduled task (`OpenCodeRetarder`) runs `watch.mjs` at logon. It
 checks the asar every 20 seconds and, whenever an official app update replaces it, re-injects the
 plugin automatically. Because nothing about the app itself is modified before you install, updating
@@ -97,6 +102,9 @@ Restart OpenCode Desktop afterwards. To only disable it temporarily: disable the
 
 在输入框发送按钮左侧加一个时钟控件：**默认不生效**；选择时刻后，发送的消息会保留在输入框中，
 等到所选时刻自动发出（发送一次后复位）。**定时按会话独立生效**，互不影响。
+
+> 桌面端采用内存路由，窗口 URL 不会变化：插件改为读取应用持久化的当前路由
+> （`opencode.desktop.window.<id>.last-active-url`），写入时立即响应，另有 1.5 秒轮询兜底。
 
 安装：克隆本仓库后进入 `retarder` 目录，运行 `install.ps1`（或双击 `install.cmd`），
 然后重启 OpenCode 桌面端。卸载：运行 `uninstall.ps1`。

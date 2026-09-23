@@ -1,4 +1,4 @@
-/*retarder:v2 — OpenCode Desktop 定时发送插件：默认不生效；定时按会话独立保存。*/
+/*opencode-retarder:v3 — OpenCode Desktop 定时发送插件：默认不生效；定时按会话独立保存。*/
 (function () {
   "use strict";
   if (window.__opencodeRetarder) return;
@@ -40,17 +40,24 @@
   var pop = null, popOwner = null, seen = [];
   var formKeys = typeof WeakMap === "function" ? new WeakMap() : null;
 
-  /* ------------------------------------------------------------- 会话标识 */
+  /* 会话标识 */
   function currentKey() {
     try {
-      var p = location.pathname || "/";
-      var m = /\/session\/([^/?#]+)\/?$/.exec(p);
+      var p = "";
+      try {
+        var w = window.electron && window.electron.windowID;
+        if (w) p = localStorage.getItem("opencode.desktop.window." + w + ".last-active-url") || "";
+      } catch (e) {}
+      if (!p) p = (location.pathname || "/") + (location.search || "");
+      var q = p.indexOf("?") >= 0 ? p.slice(p.indexOf("?")) : "";
+      var path = p.split(/[?#]/)[0] || "/";
+      var m = /\/session\/([^/?#]+)\/?$/.exec(path);
       if (m) return "s:" + m[1];
-      if (p.indexOf("/new-session") === 0) {
-        var d = new URLSearchParams(location.search || "").get("draftId");
+      if (path === "/new-session") {
+        var d = new URLSearchParams(q).get("draftId");
         return d ? "d:" + d : "home";
       }
-      return p === "/" ? "home" : p.replace(/\/+$/, "");
+      return path === "/" ? "home" : path.replace(/\/+$/, "");
     } catch (e) {
       return "home";
     }
@@ -62,7 +69,7 @@
       var visible = !!(r.width && r.height);
       var k = formKeys ? formKeys.get(form) : undefined;
       if (visible || k === undefined) {
-        // 可见的输入框始终对应当前会话；不可见的输入框不继承当前会话的定时
+
         k = visible ? currentKey() : "";
         if (formKeys) formKeys.set(form, k);
       }
@@ -179,7 +186,7 @@
     return a;
   }
 
-  /* ------------------------------------------------------------------ DOM */
+  /* DOM */
   function decorate() {
     var forms = document.querySelectorAll(FORM);
     for (var i = 0; i < forms.length; i++) {
@@ -247,7 +254,7 @@
     if (retry) { clearTimeout(retry); retry = null; }
   }
 
-  /* ----------------------------------------------------------------- 定时 */
+  /* 定时 */
   function arm(a, ts) {
     var key = keyOf(a.closest(FORM));
     targets[key] = ts;
@@ -306,7 +313,7 @@
     refresh();
     try { b.click(); } catch (e) {}
     setTimeout(function () {
-      // 若这次点击没有生效（输入框仍有内容），再补一次，避免重复发送
+
       var form = b.closest(FORM), ed = form && form.querySelector(EDITOR);
       var text = ed && ed.textContent ? ed.textContent.trim() : "";
       if (b.isConnected && !b.disabled && text && !b.querySelector("svg rect")) {
@@ -315,7 +322,7 @@
     }, 600);
   }
 
-  /* --------------------------------------------------------------- 拦截 */
+  /* 拦截 */
   function onClick(e) {
     try {
       if (held) return;
@@ -354,7 +361,7 @@
     } catch (err) {}
   }
 
-  /* --------------------------------------------------------------- 面板 */
+  /* 面板 */
   function quickBtn(label, hint, fn) {
     var b = el("button", { class: "rd-btn", type: "button" });
     b.appendChild(el("span", {}, label));
@@ -453,8 +460,12 @@
     window.addEventListener("resize", place, true);
   }
 
-  /* ---------------------------------------------------------------- 启动 */
+  /* 启动 */
+  var routeKey;
   function onRoute() {
+    var k = currentKey();
+    if (k === routeKey) return;
+    routeKey = k;
     setTimeout(function () { try { decorate(); refresh(); } catch (e) {} }, 0);
   }
   function boot() {
@@ -463,16 +474,23 @@
       load();
       document.addEventListener("click", onClick, true);
       document.addEventListener("keydown", onKey, true);
-      window.addEventListener("popstate", onRoute);
-      var ps = history.pushState, rs = history.replaceState;
-      history.pushState = function () { var r = ps.apply(this, arguments); onRoute(); return r; };
-      history.replaceState = function () { var r = rs.apply(this, arguments); onRoute(); return r; };
+      /* 内存路由：以 last-active-url 为准，写入时即时响应（另有轮询兜底） */
+      try {
+        var _si = localStorage.setItem.bind(localStorage);
+        localStorage.setItem = function (k, v) {
+          var r = _si(k, v);
+          if (typeof k === "string" && k.indexOf("last-active-url") >= 0) setTimeout(onRoute, 0);
+          return r;
+        };
+      } catch (e) {}
+      setInterval(function () { if (document.visibilityState !== "hidden") onRoute(); }, 1500);
       var run = function () { scheduled = false; try { decorate(); refresh(); } catch (e) {} };
       new MutationObserver(function () {
         if (scheduled) return;
         scheduled = true;
         setTimeout(run, 250);
       }).observe(document.documentElement, { childList: true, subtree: true });
+      routeKey = currentKey();
       decorate();
       refresh();
       if (held || Object.keys(targets).length) tickOn();
