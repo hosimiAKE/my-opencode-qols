@@ -174,7 +174,11 @@ function fitParts(code, slotSizes) {
 
 function buildBoot(names) {
   return (
-    `/*${MARK}:v1-boot*/(function(){var f=[` +
+    `/*${MARK}:v1-boot*/(function(){` +
+    /* 页面解析阶段就登记 IPC 端口监听：插件代码要等 fetch 完成才执行，
+     * 若端口比它先到，先存起来留给插件用（与桌面端自身的监听互不影响）。*/
+    `window.addEventListener("message",function(e){if(e.data==="desktop-rpc-port"&&e.ports&&e.ports[0]&&!window.__buiRpcPort)window.__buiRpcPort=e.ports[0]});` +
+    `var f=[` +
     names.map((n) => JSON.stringify("./" + n)).join(",") +
     `];Promise.all(f.map(function(p){return fetch(p,{cache:"no-store"}).then(function(r){return r.text()})}))` +
     `.then(function(a){Function(a.join(""))()})` +

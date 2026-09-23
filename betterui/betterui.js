@@ -25,7 +25,7 @@
 
   /* --------------------------------------------------------------- 配置 */
   var CFG_KEY = "opencode.betterui.v1";
-  var cfg = { collapsed: {}, sessions: {}, hidden: {}, drafts: {} };
+  var cfg = { collapsed: {}, sessions: {}, hidden: {}, drafts: {}, forced: false };
   try {
     var raw = localStorage.getItem(CFG_KEY);
     if (raw) {
@@ -34,9 +34,18 @@
       if (o && o.sessions && typeof o.sessions === "object") cfg.sessions = o.sessions;
       if (o && o.hidden && typeof o.hidden === "object") cfg.hidden = o.hidden;
       if (o && o.drafts && typeof o.drafts === "object") cfg.drafts = o.drafts;
+      if (o && o.forced) cfg.forced = true;
     }
   } catch (e) {}
   var saveTimer = null;
+  function saveNow() {
+    try {
+      localStorage.setItem(CFG_KEY, JSON.stringify({
+        collapsed: cfg.collapsed, sessions: cfg.sessions, hidden: cfg.hidden, drafts: cfg.drafts,
+        forced: !!cfg.forced,
+      }));
+    } catch (e) {}
+  }
   function saveCfg() {
     if (saveTimer) return;
     saveTimer = setTimeout(function () {
@@ -54,9 +63,7 @@
           for (var j = dk.length - 120; j < dk.length; j++) keepD[dk[j]] = cfg.drafts[dk[j]];
           cfg.drafts = keepD;
         }
-        localStorage.setItem(CFG_KEY, JSON.stringify({
-          collapsed: cfg.collapsed, sessions: cfg.sessions, hidden: cfg.hidden, drafts: cfg.drafts,
-        }));
+        saveNow();
       } catch (e) {}
     }, 400);
   }
@@ -91,14 +98,13 @@
     "[data-bui-menubar] [data-bui-menu][data-bui-open]{background-color:var(--v2-background-bg-layer-02);color:var(--v2-text-text-base)}",
     /* --- 原汉堡：变成不可见代理 --- */
     '[data-component="desktop-icon-button"][data-bui-proxy]{position:fixed!important;left:0;top:0;width:1px!important;height:1px!important;opacity:0!important;overflow:hidden!important;pointer-events:none!important;z-index:-1!important}',
-    /* --- 探测 / 菜单显示辅助 --- */
+    /* --- 探测 / 菜单显示闸门 ---
+     * 应用自己的菜单弹层在「定位完成」之前一律不可见。静态选择器保证弹层一
+     * 出现就被藏住（不依赖任何时序属性），因此不会再闪现原菜单的任何内容。*/
     'html[data-bui-probe] [data-component="menu-v2-content"]{opacity:0!important;pointer-events:none!important}',
-    '[data-component="menu-v2-content"][data-bui-parent]{opacity:0!important;pointer-events:none!important}',
-    /* 菜单定位完成前整体不可见，避免先出现在错误位置再跳过来 */
-    'html[data-bui-placing] [data-component="menu-v2-content"].desktop-app-menu:not(.desktop-app-menu-sub){opacity:0!important;pointer-events:none!important}',
-    'html[data-bui-placing] [data-component="menu-v2-content"].desktop-app-menu-sub{visibility:hidden!important}',
-    /* 子菜单出现在按钮正下方，不需要入场动画 */
+    '[data-component="menu-v2-content"].desktop-app-menu{opacity:0!important;pointer-events:none!important}',
     '[data-component="menu-v2-content"].desktop-app-menu-sub{animation:none!important;transition:none!important}',
+    '[data-component="menu-v2-content"].desktop-app-menu-sub[data-bui-show]{opacity:1!important;pointer-events:auto!important}',
   ].join("\n");
   function injectCss() {
     if (document.getElementById("bui-style")) return;
@@ -671,6 +677,70 @@
     return null;
   }
 
+  /* ------------------------------------- 竖排 Tabs（安装时已设置，此处兜底） */
+  /* 设置存在 default.dat / settings.v3。安装脚本会改成 vertical；若应用在安装时
+   * 正在运行并覆盖了它，这里经应用自身 IPC 补写一次并刷新页面。只执行一次。*/
+  var rpcPort = null, rpcSeq = 0, rpcWait = {};
+  function useRpcPort(port) {
+    if (rpcPort || !port) return;
+    rpcPort = port;
+    port.addEventListener("message", function (e) {
+      var m = e.data;
+      if (!m || m._tag !== "Exit") return;
+      var cb = rpcWait[Number(m.requestId)];
+      if (!cb) return;
+      delete rpcWait[Number(m.requestId)];
+      try { cb(!!(m.exit && m.exit._tag === "Success")); } catch (err) {}
+    });
+    try { port.start(); } catch (err) {}
+  }
+  window.addEventListener("message", function (ev) {
+    if (ev.source !== window || ev.data !== "desktop-rpc-port") return;
+    useRpcPort(ev.ports && ev.ports[0]);
+  });
+  /* 引导脚本在页面解析阶段就会抢下 IPC 端口（若比本文件先到），这里直接用现成的 */
+  if (window.__buiRpcPort) useRpcPort(window.__buiRpcPort);
+  function rpcCall(tag, payload, cb) {
+    if (!rpcPort) return false;
+    var id = 1000000000 + (++rpcSeq);
+    rpcWait[id] = cb;
+    try {
+      rpcPort.postMessage({ _tag: "Request", id: id, tag: tag, payload: payload, headers: [] });
+    } catch (e) {
+      delete rpcWait[id];
+      return false;
+    }
+    return true;
+  }
+  function ensureVerticalTabs() {
+    if (cfg.forced) return;
+    var write = function (map) {
+      if (cfg.forced || !map || typeof map !== "object") return;
+      /* storageSnapshot 可能是 Map，也可能是普通对象 */
+      var store = typeof map.get === "function" ? map.get("default.dat") : map["default.dat"];
+      var items = (store && store.items) || {};
+      var cur = null;
+      try { cur = items["settings.v3"] ? JSON.parse(items["settings.v3"]) : null; } catch (e) { cur = null; }
+      var next = cur && typeof cur === "object" ? cur : {};
+      if (!next.appearance || typeof next.appearance !== "object") next.appearance = {};
+      if (next.appearance.tabLayout === "vertical") { cfg.forced = true; saveCfg(); return; }
+      next.appearance.tabLayout = "vertical";
+      var job = function () {
+        rpcCall("StorageUpdate", { name: "default.dat", insert: { "settings.v3": JSON.stringify(next) }, remove: [] }, function (ok) {
+          if (!ok) return; /* 写入失败：保留标记，下次启动再试 */
+          cfg.forced = true;
+          saveNow(); /* 紧接着就刷新页面，必须同步落盘，避免反复刷新 */
+          setTimeout(function () { try { location.reload(); } catch (e) {} }, 120);
+        });
+      };
+      if (rpcPort) job();
+      else waitFor(function () { return rpcPort; }, 3000, function (p) { if (p) job(); });
+    };
+    var snap = window.electron && window.electron.storageSnapshot;
+    /* 读不到现有设置时绝不写入，避免覆盖用户设置；下次启动再试。 */
+    if (snap && snap.then) snap.then(function (map) { write(map); }, function () {});
+  }
+
   /* ------------------------------------------------------------ 菜单栏 */
   function menuHost() {
     var tb = document.querySelector('[data-slot="titlebar-v2"]');
@@ -720,6 +790,13 @@
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape" && activeKey) setActive(null);
     }, true);
+    /* 点击子菜单里的条目后立即收手：否则 tick 会误以为用户把鼠标移开了，把刚选完的菜单又拉回来 */
+    document.addEventListener("click", function (e) {
+      var n = e.target && e.target.closest ? e.target.closest('[data-component="menu-v2-item"]') : null;
+      if (!n || !n.closest(".desktop-app-menu-sub")) return;
+      clearShown();
+      setActive(null);
+    }, true);
   }
   function setActive(key) {
     activeKey = key;
@@ -768,6 +845,11 @@
     var p = document.querySelectorAll("[data-bui-parent]");
     for (var i = 0; i < p.length; i++) p[i].removeAttribute("data-bui-parent");
   }
+  /* 只有被 placeSub 定位过的子菜单才带 data-bui-show（才允许显示） */
+  function clearShown() {
+    var p = document.querySelectorAll("[data-bui-show]");
+    for (var i = 0; i < p.length; i++) p[i].removeAttribute("data-bui-show");
+  }
   function sectionItems(popup) {
     if (!popup) return [];
     var all = popup.querySelectorAll('[data-component="menu-v2-item"]');
@@ -797,34 +879,26 @@
   function openSection(key, btn) {
     var host = menuHost();
     if (!host || !btn) return;
+    clearShown();
     var r = btn.getBoundingClientRect();
     host.style.left = Math.round(r.left) + "px";
     host.style.top = Math.round(r.top) + "px";
     host.style.width = Math.max(1, Math.round(r.width)) + "px";
     host.style.height = Math.max(1, Math.round(r.height)) + "px";
-    /* 定位完成前把菜单整体藏起来，用户不会看到「先出现在别处再跳过来」 */
-    document.documentElement.setAttribute("data-bui-placing", "");
-    var placed = false;
-    var reveal = function () {
-      if (placed) return;
-      placed = true;
-      document.documentElement.removeAttribute("data-bui-placing");
-    };
     var popup = parentPopup();
     var open = function () {
       waitFor(parentPopup, 700, function (p) {
-        if (!p) { reveal(); setActive(null); return; }
+        if (!p) { setActive(null); return; }
         p.setAttribute("data-bui-parent", "");
         var items = sectionItems(p);
         var idx = SECTIONS.indexOf(key);
         var item = findItem(items, key, idx);
         lastSubAt = Date.now();
         setActive(key);
-        if (!item) { reveal(); return; }
+        if (!item) return;
         openSub(item, function () {
           var sub = subPopup();
           if (sub) placeSub(sub, btn);
-          reveal();
           /* 展开后的前 0.6 秒持续校正，抵消弹出层自身的落位微调 */
           var settleUntil = Date.now() + 600;
           (function settle() {
@@ -834,10 +908,9 @@
           })();
         });
       });
-      setTimeout(reveal, 1500);
     };
     if (popup) open();
-    else openProxy(open, function () { reveal(); setActive(null); });
+    else openProxy(open, function () { setActive(null); });
   }
   function findItem(items, key, idx) {
     if (!items || !items.length) return null;
@@ -881,8 +954,11 @@
     var naturalLeft = r.left - cur[0], naturalTop = r.top - cur[1];
     sub.style.translate = Math.round(b.left - naturalLeft) + "px " + Math.round(b.bottom + 4 - naturalTop) + "px";
     sub.style.zIndex = "2147483000";
+    /* 定位完成的这一刻才允许显示（CSS 闸门只放行 [data-bui-show]） */
+    sub.setAttribute("data-bui-show", "");
   }
   function closeMenu() {
+    clearShown();
     var popup = parentPopup() || subPopup();
     if (popup) {
       var focused = document.activeElement;
@@ -906,18 +982,20 @@
     probing = true;
     document.documentElement.setAttribute("data-bui-probe", "");
     var done = function () {
-      document.documentElement.removeAttribute("data-bui-probe");
-      probing = false;
-      probed = true;
-      var flush = function () {
+      var finish = function () {
+        document.documentElement.removeAttribute("data-bui-probe");
+        probing = false;
+        probed = true;
         var q = probeQueue;
         probeQueue = [];
         for (var i = 0; i < q.length; i++) try { q[i](); } catch (e) {}
       };
+      /* 先关掉探测用的隐藏弹层，弹层真正消失后再摘掉 data-bui-probe，
+       * 否则隐藏属性提前移除会露出一瞬间的真实菜单。 */
       if (parentPopup()) {
         closeMenu();
-        waitFor(function () { return !parentPopup(); }, 500, flush);
-      } else flush();
+        waitFor(function () { return !parentPopup(); }, 800, finish);
+      } else finish();
     };
     var read = function (p) {
       var items = sectionItems(p);
@@ -960,6 +1038,7 @@
     scanPerf();
     loadProjects(true);
     decorate();
+    try { ensureVerticalTabs(); } catch (e) {}
     new MutationObserver(schedule).observe(document.documentElement, { childList: true, subtree: true });
     setInterval(function () { if (document.visibilityState !== "hidden") { scanPerf(); loadProjects(false); schedule(); } }, 3000);
     window.__betterui = {
@@ -968,7 +1047,7 @@
         return {
           server: apiBase, projects: projects.length, sessions: Object.keys(cfg.sessions).length,
           groups: Object.keys(headers), menubar: !!document.querySelector("[data-bui-menubar]"),
-          active: activeKey, labels: LABELS,
+          active: activeKey, labels: LABELS, tabsForced: !!cfg.forced,
         };
       },
       redraw: schedule,
