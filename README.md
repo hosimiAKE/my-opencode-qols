@@ -24,12 +24,12 @@ OpenCode Desktop has no build-in way to delay a message. `retarder` adds a small
 the composer, right next to the send button:
 
 ```
-[+]  [Build ▾]  [Model ▾]  [Max ▾]                 [🕘 20:30]  [↑]
+[+]  [Build ▾]  [Model ▾]  [Max ▾]                 [🕘 18:00]  [↑]
                                                        ↑ retarder
 ```
 
 - **Does nothing by default** — no time selected means stock OpenCode behaviour.
-- **Pick a moment** — 5 min / 30 min / 1 h / today 20:00 / tomorrow 09:00, or a custom date + time.
+- **Pick a moment** — 5 min / 30 min / 1 h / today 12:00 / today 18:00, or a custom date + time.
 - **Hold on send** — pressing send (or Enter) keeps the message in the composer until the chosen
   time, then sends it automatically and resets.
 - **Per session** — the schedule only affects the session it was set in.

@@ -15,7 +15,7 @@
     control: "定时发送", on: "定时发送：将在 {t} 发送", held: "消息待到点发送 · {t}", title: "定时发送",
     desc: "选择时间后，本会话发送的消息会等到该时间再发出。", off: "当前会话：未开启",
     on2: "当前会话：将在 {t} 发送", held2: "消息已暂存，将于 {t} 自动发送", in5: "5 分钟后",
-    in30: "30 分钟后", in60: "1 小时后", today20: "今天 20:00", tomorrow9: "明天 09:00",
+    in30: "30 分钟后", in60: "1 小时后",
     date: "日期", time: "时间", confirm: "确定",
     cancel: "取消定时", sendNow: "立即发送", invalid: "请选择将来的时间",
   };
@@ -23,7 +23,7 @@
     control: "Scheduled send", on: "Scheduled send: {t}", held: "Holding until {t}", title: "Scheduled send",
     desc: "Messages wait until the selected time.", off: "Off",
     on2: "Scheduled for {t}", held2: "Will send at {t}", in5: "In 5 min",
-    in30: "In 30 min", in60: "In 1 hour", today20: "Today 20:00", tomorrow9: "Tomorrow 09:00",
+    in30: "In 30 min", in60: "In 1 hour",
     date: "Date", time: "Time", confirm: "OK",
     cancel: "Cancel", sendNow: "Send now", invalid: "Pick a future time",
   };
@@ -362,12 +362,11 @@
     b.addEventListener("click", function (e) { e.preventDefault(); fn(); });
     return b;
   }
-  function at(h, m, plusDay) {
-    var d = new Date();
-    if (plusDay) d.setDate(d.getDate() + 1);
-    d.setHours(h, m, 0, 0);
-    if (d.getTime() <= Date.now()) d.setDate(d.getDate() + 1);
-    return d.getTime();
+  function dayAt(h) {
+    var d = new Date(), tmr = 0;
+    d.setHours(h, 0, 0, 0);
+    if (d.getTime() <= Date.now()) { d.setDate(d.getDate() + 1); tmr = 1; }
+    return { ts: d.getTime(), label: (tmr ? (IS_ZH ? "明天 " : "Tomorrow ") : (IS_ZH ? "今天 " : "Today ")) + h + ":00" };
   }
   function closePop() {
     if (!pop) return;
@@ -411,8 +410,10 @@
     list.appendChild(quickBtn(t("in5"), hhmm(Date.now() + 300000), function () { arm(a, Date.now() + 300000); }));
     list.appendChild(quickBtn(t("in30"), hhmm(Date.now() + 1800000), function () { arm(a, Date.now() + 1800000); }));
     list.appendChild(quickBtn(t("in60"), hhmm(Date.now() + 3600000), function () { arm(a, Date.now() + 3600000); }));
-    list.appendChild(quickBtn(t("today20"), hhmm(at(20, 0, false)), function () { arm(a, at(20, 0, false)); }));
-    list.appendChild(quickBtn(t("tomorrow9"), hhmm(at(9, 0, true)), function () { arm(a, at(9, 0, true)); }));
+    [12, 18].forEach(function (h) {
+      var q = dayAt(h);
+      list.appendChild(quickBtn(q.label, "", function () { arm(a, q.ts); }));
+    });
     p.appendChild(list);
     var row = el("div", { class: "rd-row" });
     var date = el("input", { type: "date", "aria-label": t("date") });

@@ -5,12 +5,12 @@ By default it does nothing. Pick a time and the messages you send wait until tha
 actually being sent — perfect for rate limits, off-hours work, or queueing something for later.
 
 ```
-[+]  [Build ▾]  [Model ▾]  [Max ▾]                 [🕘 20:30]  [↑]
+[+]  [Build ▾]  [Model ▾]  [Max ▾]                 [🕘 18:00]  [↑]
                                                        ↑ retarder
 ```
 
 - **Off by default** — with no time selected the composer behaves exactly like stock OpenCode.
-- **Pick a moment** — `5 min` / `30 min` / `1 h` / `Today 20:00` / `Tomorrow 09:00`, or a custom date + time.
+- **Pick a moment** — `5 min` / `30 min` / `1 h` / `Today 12:00` / `Today 18:00`, or a custom date + time.
 - **Hold on send** — hitting send (or Enter) keeps the message in the composer until the chosen time, then sends it automatically.
 - **Per session** — a schedule applies only to the session it was set in; other sessions are unaffected.
 - **One-shot** — after the scheduled message is sent the control resets to its default state.
